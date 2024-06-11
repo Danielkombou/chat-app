@@ -51,45 +51,9 @@ async function getUserDataFromRequest (req) {
     });
 }
 
-app.get('/test', (req, res) => {
+app.get('/', (req, res) => {
     res.json('test ok')
 });
-
-app.get('/messages/:userId', async (req, res) => {
-    const {userId} = req.params;
-    const userData = await getUserDataFromRequest(req);
-    const ourUserId = userData.userId;
-    const messages = await Message.find({
-        sender: {$in: [userId, ourUserId]},
-        recipient: {$in: [userId, ourUserId]}
-    }).sort({createdAt: 1});
-    res.json(messages);
-});
-
-app.get('/people', async (req, res) => {
-    const users = await User.find({}, {'_id': 1, username: 1});
-    res.json(users);
-})
-
-app.post('/login', async (req, res) => {
-    const {username, password} = req.body;
-    const foundUser = await User.findOne({username})
-    if(foundUser) {
-        const passOk = bcrypt.compareSync(password, foundUser.password);
-        if(passOk) {
-            jwt.sign({userId: foundUser._id, username}, jwtSecret, {}, (err, token) => {
-                if(err) throw err;
-                res.cookie('token', token, {sameSite: 'none', secure: true}).json({
-                id: foundUser._id,
-                })
-            });
-        } 
-    }
-});
-
-app.post('/logout', (req, res) => {
-    res.cookie('token', '', {sameSite: 'none', secure: true}).json('ok')
-})
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
@@ -112,7 +76,46 @@ app.post('/register', async (req, res) => {
     }
 
     
+});
+
+app.post('/login', async (req, res) => {
+    const {username, password} = req.body;
+    const foundUser = await User.findOne({username})
+    if(foundUser) {
+        const passOk = bcrypt.compareSync(password, foundUser.password);
+        if(passOk) {
+            jwt.sign({userId: foundUser._id, username}, jwtSecret, {}, (err, token) => {
+                if(err) throw err;
+                res.cookie('token', token, {sameSite: 'none', secure: true}).json({
+                id: foundUser._id,
+                })
+            });
+        } 
+    }
+});
+
+app.get('/people', async (req, res) => {
+    const users = await User.find({}, {'_id': 1, username: 1});
+    res.json(users);
+});
+
+app.get('/messages/:userId', async (req, res) => {
+    const {userId} = req.params;
+    const userData = await getUserDataFromRequest(req);
+    const ourUserId = userData.userId;
+    const messages = await Message.find({
+        sender: {$in: [userId, ourUserId]},
+        recipient: {$in: [userId, ourUserId]}
+    }).sort({createdAt: 1});
+    res.json(messages);
+});
+
+app.post('/logout', (req, res) => {
+    res.cookie('token', '', {sameSite: 'none', secure: true}).json('ok')
 })
+
+
+
 
 const port = process.env.PORT || 4000;
 const server = app.listen(port);
