@@ -19,10 +19,10 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 
 app.use(express.json())
 app.use('/uploads', express.static(__dirname + '/uploads'));
-app.use(cors({
-    credentials: true,
-    origin: process.env.CLIENT_URL
-}));
+app.use(cors(
+    // {// credentials: true,
+    // origin: process.env.CLIENT_URL}
+));
 app.use(cookieParser())
 
 app.get('/profile', (req, res) => {
