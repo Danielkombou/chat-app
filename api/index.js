@@ -19,106 +19,145 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 
 app.use(express.json())
 app.use('/uploads', express.static(__dirname + '/uploads'));
-app.use(cors(
-    // {// credentials: true,
-    // origin: process.env.CLIENT_URL}
-));
-app.use(cookieParser())
+app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+}));
+app.use(cookieParser());
+
+app.get('/test', (req, res) => {
+    res.json('test ok')
+});
 
 app.get('/profile', (req, res) => {
     const token = req.cookies?.token;
     if(token){
         jwt.verify(token, jwtSecret, {}, (err, userData) => {
-            if(err) throw err;
+            if(err) {
+                return res.status(401).json({error: "Invalid token"})
+            }
             res.json(userData)
-        })
+        });
     } else {
-        res.status(401).json('no token')
+        res.status(401).json({error:'No token provided'});
     }
-})
+});
 
 async function getUserDataFromRequest (req) {
     return new Promise((resolve, reject) => {
         const token = req.cookies?.token;
         if(token){
             jwt.verify(token, jwtSecret, {}, (err, userData) => {
-                if(err) throw err;
+                if(err) {
+                    reject('Invalid token');
+                }
                 resolve(userData);
             })
         } else {
-            reject('no token')
+            reject('No token provided')
         }
     });
 }
 
-app.get('/', (req, res) => {
-    res.json('test ok')
+app.get('/messages/:userId', async (req, res) => {
+    const { userId } = req.params;
+    
+    try {
+        const userData = await getUserDataFromRequest(req);
+        const ourUserId = userData.userId;
+
+        const messages = await Message.find({
+            sender: {$in: [userId, ourUserId]},
+            recipient: {$in: [userId, ourUserId]}
+        }).sort({createdAt: 1});
+
+        res.json(messages);
+    } catch (error) {
+        res.status(500).json({ error: 'An error occured while fetching messages' });
+    }
 });
+
+app.get('/people', async (req, res) => {
+    try {
+        const users = await User.find({}, {'_id': 1, username: 1});
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: 'An error occured while fetching the user' });
+    }
+});
+
+app.post('/login', async (req, res) => {
+    const { username, password } = req.body;
+
+    try {
+        const foundUser = await User.findOne({username})
+        if(foundUser) {
+            const passOk = bcrypt.compareSync(password, foundUser.password);
+            if(passOk) {
+                jwt.sign({userId: foundUser._id, username}, jwtSecret, {}, (err, token) => {
+                    if(err) {
+                        return res.status(500).json({ error: 'Error generating token' });
+                    }
+                    res.cookie('token', token, {sameSite: 'none', secure: [rocess.env.NODE_ENV === 'production']}).json({
+                        id: foundUser._id,
+                    });
+                });
+            } else {
+                res.status(401).json({ error: 'Invalid password'})
+            }
+        } else {
+            res.status(401).json({ error: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ error: 'An error occured during login' });
+    }
+});
+
+app.post('/logout', (req, res) => {
+    res.cookie('token',
+     '',
+    {sameSite: 'none',
+    secure: process.env.NODE_ENV === 'production',
+    expires: newDate(0),
+}).json('ok');
+});
+
 
 app.post('/register', async (req, res) => {
     const { username, password } = req.body;
     
     try {
+        // Hash the password
         const hashedPassword = bcrypt.hashSync(password, bcryptSalt)
+
+        // Create the user
         const createdUser = await User.create({
             username: username,
             password: hashedPassword,
         });
+        
+        // Sign the JWT
         jwt.sign({userId: createdUser._id, username}, jwtSecret, {}, (err, token) => {
-            if (err) throw err;
-            res.cookie('token', token, {sameSite: 'none', secure: true}).status(201).json({
+            if (err) {
+                return res.status(500).json({ error: 'Error generating the token'})
+            }
+
+            // Set the cookie and respond
+            res.cookie('token',
+            token,
+            {sameSite: 'none', secure: process.env.NODE_ENV === 'production'
+        }).status(201).json({
                 id: createdUser._id,
-            })
-        })
-    } catch (error) {
-        if (error) throw error;
-        res.status(500).json('error')
-    }
-
-    
-});
-
-app.post('/login', async (req, res) => {
-    const {username, password} = req.body;
-    const foundUser = await User.findOne({username})
-    if(foundUser) {
-        const passOk = bcrypt.compareSync(password, foundUser.password);
-        if(passOk) {
-            jwt.sign({userId: foundUser._id, username}, jwtSecret, {}, (err, token) => {
-                if(err) throw err;
-                res.cookie('token', token, {sameSite: 'none', secure: true}).json({
-                id: foundUser._id,
-                })
             });
-        } 
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'An error occured during the registration' });
     }
 });
 
-app.get('/people', async (req, res) => {
-    const users = await User.find({}, {'_id': 1, username: 1});
-    res.json(users);
-});
 
-app.get('/messages/:userId', async (req, res) => {
-    const {userId} = req.params;
-    const userData = await getUserDataFromRequest(req);
-    const ourUserId = userData.userId;
-    const messages = await Message.find({
-        sender: {$in: [userId, ourUserId]},
-        recipient: {$in: [userId, ourUserId]}
-    }).sort({createdAt: 1});
-    res.json(messages);
-});
-
-app.post('/logout', (req, res) => {
-    res.cookie('token', '', {sameSite: 'none', secure: true}).json('ok')
-})
-
-
-
-
-const port = process.env.PORT || 4000;
-const server = app.listen(port);
+// const port = process.env.PORT || 4000;
+const server = app.listen(4040);
 
 const wss = new ws.WebSocketServer({server});
 wss.on('connection', (connection, req) => {
@@ -201,3 +240,5 @@ wss.on('connection', (connection, req) => {
     // Notify everyone about online people (when someone connects)
     notifyAboutOnlinePeople() 
 });
+
+module.exports = app;

@@ -4,7 +4,6 @@ import { UserContext } from "./UserContext";
 import uniqBy from "lodash/uniqBy";
 import Contact from "./Contact";
 import axios from "axios";
-import { values } from "lodash";
 
 export default function Chat() {
   const [ws, setWS] = useState(null);
@@ -42,7 +41,6 @@ export default function Chat() {
 
   function handleMessage(ev) {
     const messageData = JSON.parse(ev.data);
-    // console.log({ ev, messageData });
     if ("online" in messageData) {
       showOnlinePoeple(messageData.online);
     } else if ("text" in messageData) {
@@ -66,7 +64,7 @@ export default function Chat() {
       });
     } else {
       setNewMessageText("");
-      setMessages((prev) => [
+      setMessages(prev => ([
         ...prev,
         {
           text: newMessageText,
@@ -74,7 +72,7 @@ export default function Chat() {
           recipient: selectedUserId,
           _id: Date.now(),
         },
-      ]);
+      ]));
     }
   };
 
