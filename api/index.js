@@ -10,6 +10,7 @@ const cors = require('cors');
 const bcrypt = require('bcryptjs')
 const ws = require('ws');
 const fs = require('fs')
+const path = require('path')
 
 
 dotenv.config();
@@ -17,8 +18,9 @@ mongoose.connect(process.env.MONGO_URL);
 const jwtSecret = process.env.JWT_SECRET;
 const bcryptSalt = bcrypt.genSaltSync(10);
 
-app.use(express.json())
-app.use('/uploads', express.static(__dirname + '/uploads'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true}));
+app.use('/uploads', express.static(path.join(__dirname + '/uploads')));
 app.use(cors({
     credentials: true,
     origin: process.env.CLIENT_URL
@@ -26,7 +28,7 @@ app.use(cors({
 app.use(cookieParser());
 
 app.get('/test', (req, res) => {
-    res.json('test ok')
+    res.json('test ok');
 });
 
 app.get('/profile', (req, res) => {
@@ -69,7 +71,7 @@ app.get('/messages/:userId', async (req, res) => {
         const messages = await Message.find({
             sender: {$in: [userId, ourUserId]},
             recipient: {$in: [userId, ourUserId]}
-        }).sort({createdAt: 1});
+        }).sort({createdAt: 1}).populate('sender').populate('recipient');
 
         res.json(messages);
     } catch (error) {
@@ -98,7 +100,7 @@ app.post('/login', async (req, res) => {
                     if(err) {
                         return res.status(500).json({ error: 'Error generating token' });
                     }
-                    res.cookie('token', token, {sameSite: 'none', secure: [rocess.env.NODE_ENV === 'production']}).json({
+                    res.cookie('token', token, {sameSite: 'none', secure: process.env.NODE_ENV === 'production'}).json({
                         id: foundUser._id,
                     });
                 });
@@ -118,7 +120,7 @@ app.post('/logout', (req, res) => {
      '',
     {sameSite: 'none',
     secure: process.env.NODE_ENV === 'production',
-    expires: newDate(0),
+    expires: new Date(0),
 }).json('ok');
 });
 
@@ -212,11 +214,16 @@ wss.on('connection', (connection, req) => {
             const parts = file.name.split('.');
             const ext = parts[parts.length -1];
             filename = Date.now() + '.'+ext;
-            const path = __dirname + '/uploads/' + filename;
-            const bufferData = new Buffer(file.data.split(',')[1], 'base64');
-            fs.writeFile(path, bufferData, () => {
-                console.log('file saved:' +path);
-            })
+            const filePath = path.join(__dirname + '/uploads/' + filename);
+            const bufferData = Buffer.from(file.data.split(',')[1], 'base64');
+
+            fs.writeFile(filePath, bufferData, (err) => {
+                if(err) {
+                    console.error('Error saving file:', err);
+                    return res.status(500).json({ message: 'Error saving file' })
+                }
+                console.log('file saved:' +filePath);
+            });
         }
         if(recipient && (text || file)) {
             const messageDoc = await Message.create({
@@ -233,7 +240,7 @@ wss.on('connection', (connection, req) => {
                 sender: connection.userId,
                 file: file ? filename : null,
                 _id: messageDoc._id
-            })))
+            })));
         }
     })
 

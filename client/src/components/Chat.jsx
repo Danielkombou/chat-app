@@ -59,7 +59,7 @@ export default function Chat() {
         file,
       }));
     if (file) {
-      axios.get("/messages/" + selectedUserId).then((res) => {
+      axios.get("/messages/" + selectedUserId).then(res => {
         setMessages(res.data);
       });
     } else {
@@ -122,6 +122,16 @@ export default function Chat() {
       });
     }
   }, [selectedUserId]);
+
+  const formatDate = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString()
+  };
+
+  const formatTime = (timestamp) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})
+  }
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
@@ -188,10 +198,9 @@ export default function Chat() {
             </div>
           )}
           {selectedUserId && (
-            // <div>{JSON.stringify(messagesWithoutDupes)}Hello</div>
             <div className="relative h-full">
               <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
-                {messagesWithoutDupes.map((message) => (
+                {messagesWithoutDupes.map(message => (
                   <div
                     key={message._id}
                     className={`${
@@ -229,10 +238,13 @@ export default function Chat() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            {message.file}
+                            <img src={`http://localhost:4040/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
                           </a>
                         </div>
                       )}
+                      <div className="absolue bottom-0 right-0 text-xs text-green-500 p-1">
+                          <span className="time block">{formatTime(message.createdAt)} </span>
+                      </div>
                     </div>
                   </div>
                 ))}
