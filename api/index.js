@@ -21,9 +21,7 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use('/uploads', express.static(path.join(__dirname + '/uploads')));
-app.use(cors({
-    origin: "*"
-}));
+app.use(cors());
 app.use(cookieParser());
 
 app.get('/test', (req, res) => {
