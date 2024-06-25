@@ -31,6 +31,7 @@ app.get('/test', (req, res) => {
     res.json('test ok');
 });
 
+
 app.get('/profile', (req, res) => {
     const token = req.cookies?.token;
     if(token){
@@ -61,6 +62,7 @@ async function getUserDataFromRequest (req) {
     });
 }
 
+
 app.get('/messages/:userId', async (req, res) => {
     const { userId } = req.params;
     
@@ -78,6 +80,7 @@ app.get('/messages/:userId', async (req, res) => {
         res.status(500).json({ error: 'An error occured while fetching messages' });
     }
 });
+
 
 app.get('/people', async (req, res) => {
     try {
@@ -100,7 +103,7 @@ app.post('/login', async (req, res) => {
                     if(err) {
                         return res.status(500).json({ error: 'Error generating token' });
                     }
-                    res.cookie('token', token, {sameSite: 'none', secure: process.env.NODE_ENV === 'production'}).json({
+                    res.cookie('token', token, {sameSite: 'none', secure: true}).json({
                         id: foundUser._id,
                     });
                 });
@@ -119,7 +122,7 @@ app.post('/logout', (req, res) => {
     res.cookie('token',
      '',
     {sameSite: 'none',
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     expires: new Date(0),
 }).json('ok');
 });
@@ -147,7 +150,7 @@ app.post('/register', async (req, res) => {
             // Set the cookie and respond
             res.cookie('token',
             token,
-            {sameSite: 'none', secure: process.env.NODE_ENV === 'production'
+            {sameSite: 'none', secure: true
         }).status(201).json({
                 id: createdUser._id,
             });
@@ -246,6 +249,4 @@ wss.on('connection', (connection, req) => {
 
     // Notify everyone about online people (when someone connects)
     notifyAboutOnlinePeople() 
-});
-
-module.exports = app;
+})

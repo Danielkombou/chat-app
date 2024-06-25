@@ -20,7 +20,7 @@ export default function Chat() {
   }, []);
 
   const connectToWs = () => {
-    const ws = new WebSocket("ws://localhost:4040");
+    const ws = new WebSocket("wss://https://chat-app-dan.vercel.app");
     setWS(ws);
     ws.addEventListener("message", handleMessage);
     ws.addEventListener("close", () => {
@@ -207,8 +207,11 @@ export default function Chat() {
                       message.sender === id ? "text-right" : "text-left"
                     }`}
                   >
+                    <div className="w-20 flex justify-center text-xs text-gray-300 p-1 bg-pink rounded-sm hover:text-gray-700">
+                          <span className="date text-center">{formatDate(message.createdAt)} </span>
+                      </div>
                     <div
-                      className={`text-left inline-block p-2 my-2 rounded-sm text-sm ${
+                      className={`text-left inline-block p-2 my-2 rounded-sm text-sm hover:p-3 transition-colors duration-500 cursor-pointer ${
                         message.sender === id
                           ? "bg-blue-500 text-white"
                           : "bg-white text-gray-500"
@@ -238,7 +241,7 @@ export default function Chat() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            <img src={`http://localhost:4040/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
+                            <img src={`https://chat-app-dan.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
                           </a>
                         </div>
                       )}
@@ -248,7 +251,7 @@ export default function Chat() {
                     </div>
                   </div>
                 ))}
-                <div ref={divUnderMessages}></div>
+                <div ref={divUnderMessages}/>
               </div>
             </div>
           )}
