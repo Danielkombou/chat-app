@@ -22,8 +22,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true}));
 app.use('/uploads', express.static(path.join(__dirname + '/uploads')));
 app.use(cors({
-    credentials: true,
-    origin: process.env.CLIENT_URL
+    origin: "*"
 }));
 app.use(cookieParser());
 
