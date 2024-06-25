@@ -134,7 +134,7 @@ app.post("/login", async (req, res) => {
     if (foundUser) {
       const passOk = bcrypt.compareSync(password, foundUser.password);
       if (passOk) {
-        jwt.sign(
+        jwt.verify(
           { userId: foundUser._id, username },
           jwtSecret,
           { expiresIn: '1h' }, // Add an expiration time for security
