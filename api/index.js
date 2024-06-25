@@ -24,7 +24,7 @@ app.use('/uploads', express.static(path.join(__dirname + '/uploads')));
 app.use(cors());
 app.use(cookieParser());
 
-app.get('/test', (req, res) => {
+app.get('/', (req, res) => {
     res.json('test ok');
 });
 
