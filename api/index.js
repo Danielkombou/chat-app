@@ -20,8 +20,12 @@ const bcryptSalt = bcrypt.genSaltSync(10);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname + "/uploads")));
-app.use(cors());
 app.use(cookieParser());
+
+  app.use(cors({
+    credentials: true,
+    origin: process.env.CLIENT_URL
+  }))
 
 app.get("/", (req, res) => {
   res.json("test ok");
@@ -145,7 +149,6 @@ app.post("/register", async (req, res) => {
       username: username,
       password: hashedPassword,
     });
-    console.log(createdUser)
     res.status(200).json({ message: "User created succesfully!!", id: createdUser.insertedId})
 
   } catch (error) {

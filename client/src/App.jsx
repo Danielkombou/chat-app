@@ -4,7 +4,7 @@ import { UserContextProvider } from "./components/UserContext";
 import Routing from "./components/Routes";
 
 function App() {
-  axios.defaults.baseURL = 'https://api-weld-zeta.vercel.app';
+  axios.defaults.baseURL = 'https://chat-api-alpha.vercel.app';
   axios.defaults.withCredentials = true;
 
   return (

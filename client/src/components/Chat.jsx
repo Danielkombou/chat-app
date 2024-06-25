@@ -20,7 +20,7 @@ export default function Chat() {
   }, []);
 
   const connectToWs = () => {
-    const ws = new WebSocket("wss://https://api-weld-zeta.vercel.app");
+    const ws = new WebSocket("wss://chat-app-silk-theta.vercel.app");
     setWS(ws);
     ws.addEventListener("message", handleMessage);
     ws.addEventListener("close", () => {
@@ -241,7 +241,7 @@ export default function Chat() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            <img src={`https://api-weld-zeta.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
+                            <img src={`https://chat-api-alpha.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
                           </a>
                         </div>
                       )}
