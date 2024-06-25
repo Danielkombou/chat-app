@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "bcryptjs": "^2.4.3",
+    "build": "^0.1.4",
     "cookie-parser": "^1.4.6",
     "cookies-parser": "^1.2.0",
     "cors": "^2.8.5",
