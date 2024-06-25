@@ -241,7 +241,7 @@ export default function Chat() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            <img src={`https://chat-app-dan.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
+                            <img src={`https://api-2e3mlbcii-kombou-daniels-projects.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
                           </a>
                         </div>
                       )}
