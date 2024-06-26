@@ -109,21 +109,16 @@ app.post("/login", async (req, res) => {
             if (err) {
               return res.status(500).json({ error: "Error generating token" });
             }
-            res
-              .cookie("token", token, { sameSite: "none", secure: true })
+            res.cookie("token", token, { sameSite: "none", secure: true })
               .json({
-                error: false,
                 message: "Login successfull",
                 id: foundUser._id,
-                jwtSecret
               });
           }
         );
       } else {
         res.status(401).json({ error: "Invalid password" });
       }
-    } else {
-      res.status(401).json({ error: "User not found" });
     }
   } catch (error) {
     res.status(500).json({ error: "An error occured during login" });
@@ -169,10 +164,8 @@ app.post("/register", async (req, res) => {
           .cookie("token", token, { sameSite: "none", secure: true })
           .status(201)
           .json({
-            error: false,
             message: "User created successfully!",
             id: createdUser._id,
-            jwtSecret
           });
       }
     );
