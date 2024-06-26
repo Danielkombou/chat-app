@@ -184,26 +184,31 @@ app.post("/register", async (req, res) => {
       password: hashedPassword,
     });
 
-    // Sign the JWT
-    jwt.sign(
-      { userId: createdUser._id, username },
-      jwtSecret,
-      {},
-      (err, token) => {
-        if (err) {
-          return res.status(500).json({ error: "Error generating the token" });
-        }
+    return res.status(200).json({
+      message: "User created",
+      id: createdUser._id
+    })
 
-        // Set the cookie and respond
-        res
-          .cookie("token", token, { sameSite: "none", secure: true })
-          .status(201)
-          .json({
-            id: createdUser._id,
-            message: "User created successfully!",
-          });
-      }
-    );
+    // Sign the JWT
+    // jwt.sign(
+    //   { userId: createdUser._id, username },
+    //   jwtSecret,
+    //   {},
+    //   (err, token) => {
+    //     if (err) {
+    //       return res.status(500).json({ error: "Error generating the token" });
+    //     }
+
+    //     // Set the cookie and respond
+    //     res
+    //       .cookie("token", token, { sameSite: "none", secure: true })
+    //       .status(201)
+    //       .json({
+    //         id: createdUser._id,
+    //         message: "User created successfully!",
+    //       });
+    //   }
+    // );
   } catch (error) {
     res.status(500).json({ error: "An error occured during the registration" });
   }
