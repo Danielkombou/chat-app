@@ -16,19 +16,28 @@ export default function Chat() {
   const divUnderMessages = useRef();
 
   useEffect(() => {
-    connectToWs();
+      connectToWs();
+      // Clean up on component unmount
+      return () => {
+          if (ws) ws.close();
+      };
   }, []);
-
+  
   const connectToWs = () => {
-    const ws = new WebSocket("wss://chat-api-alpha.vercel.app");
-    setWS(ws);
-    ws.addEventListener("message", handleMessage);
-    ws.addEventListener("close", () => {
-      setTimeout(() => {
-        console.log("Disconnected. Trying to reconnect.");
-        connectToWs();
-      }, 1000);
-    });
+      const ws = new WebSocket("wss://chat-api-alpha.vercel.app");
+      setWS(ws);
+  
+      ws.addEventListener("message", handleMessage);
+      ws.addEventListener("close", () => {
+          setTimeout(() => {
+              console.log("Disconnected. Trying to reconnect.");
+              connectToWs();
+          }, 1000);
+      });
+  
+      ws.addEventListener("open", () => {
+          console.log("Connected to WebSocket server.");
+      });
   };
 
   const showOnlinePoeple = (peopleArray) => {
@@ -50,14 +59,16 @@ export default function Chat() {
     }
   }
 
-  const SendMessage = (ev, file = null) => {
+  const sendMessage = (ev, file = null) => {
     if (ev) ev.preventDefault();
-    ws.send(
-      JSON.stringify({
-        recipient: selectedUserId,
-        text: newMessageText,
-        file,
-      }));
+    if(ws && ws.readyState === Websocket.OPEN) {
+      ws.send(
+        JSON.stringify({
+          recipient: selectedUserId,
+          text: newMessageText,
+          file,
+        }));
+    }
     if (file) {
       axios.get("/messages/" + selectedUserId).then(res => {
         setMessages(res.data);
@@ -88,7 +99,7 @@ export default function Chat() {
     const reader = new FileReader();
     reader.readAsDataURL(ev.target.files[0]);
     reader.onload = () => {
-      SendMessage(null, {
+      sendMessage(null, {
         name: ev.target.files[0].name,
         data: reader.result,
       });
@@ -257,7 +268,7 @@ export default function Chat() {
           )}
         </div>
         {!!selectedUserId && (
-          <form className="flex gap-2" onSubmit={SendMessage}>
+          <form className="flex gap-2" onSubmit={sendMessage}>
             <input
               value={newMessageText}
               onChange={(ev) => setNewMessageText(ev.target.value)}
