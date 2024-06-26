@@ -93,40 +93,6 @@ app.get("/people", async (req, res) => {
   }
 });
 
-// app.post("/login", async (req, res) => {
-//   const { username, password } = req.body;
-
-//   try {
-//     const foundUser = await User.findOne({ username });
-//     if (foundUser) {
-//       const passOk = bcrypt.compareSync(password, foundUser.password);
-//       if (passOk) {
-//         jwt.sign(
-//           { userId: foundUser._id, username },
-//           jwtSecret,
-//           {},
-//           (err, token) => {
-//             if (err) {
-//               return res.status(500).json({ error: "Error generating token" });
-//             }
-//             res
-//               .cookie("token", token, { sameSite: "none", secure: true })
-//               .json({
-//                 id: foundUser._id,
-//               });
-//           }
-//         );
-//       } else {
-//         res.status(401).json({ error: "Invalid password" });
-//       }
-//     } else {
-//       res.status(401).json({ error: "User not found" });
-//     }
-//   } catch (error) {
-//     res.status(500).json({ error: "An error occured during login" });
-//   }
-// });
-
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -138,15 +104,16 @@ app.post("/login", async (req, res) => {
         jwt.sign(
           { userId: foundUser._id, username },
           jwtSecret,
-          { expiresIn: "1h" }, // Add an expiration time for security
+          {},
           (err, token) => {
             if (err) {
-              console.error("JWT Error:", err); // Log the error for debugging
               return res.status(500).json({ error: "Error generating token" });
             }
             res
               .cookie("token", token, { sameSite: "none", secure: true })
-              .json({ id: foundUser._id });
+              .json({
+                id: foundUser._id,
+              });
           }
         );
       } else {
@@ -156,10 +123,10 @@ app.post("/login", async (req, res) => {
       res.status(401).json({ error: "User not found" });
     }
   } catch (error) {
-    console.error("Login Error:", error); // Log the error for debugging
-    res.status(500).json({ error: "An error occurred during login" });
+    res.status(500).json({ error: "An error occured during login" });
   }
 });
+
 
 app.post("/logout", (req, res) => {
   res
