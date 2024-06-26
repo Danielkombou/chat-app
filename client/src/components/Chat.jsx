@@ -140,8 +140,8 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen">
-      <div className="bg-white w-1/3 flex flex-col">
-        <div className="flex-grow">
+      <div className="bg-white w-1/3 flex flex-col overflow-hidden" style={{ height: '100vh' }}>
+        <div className="flex-grow overflow-y-auto">
           <Logo />
           {Object.keys(onlinePeopleExclOurUser).map((userId) => (
             <Contact
