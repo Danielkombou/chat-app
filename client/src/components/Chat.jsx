@@ -20,7 +20,7 @@ export default function Chat() {
   }, []);
 
   const connectToWs = () => {
-    const ws = new WebSocket("wss://chat-app-silk-theta.vercel.app");
+    const ws = new WebSocket("wss://chat-api-alpha.vercel.app");
     setWS(ws);
     ws.addEventListener("message", handleMessage);
     ws.addEventListener("close", () => {
