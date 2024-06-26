@@ -183,7 +183,7 @@ app.post("/register", async (req, res) => {
       username: username,
       password: hashedPassword,
     });
-    res.status(200).json({ message: "Created successfully", id : insertedId.id });
+    res.status(200).json({ message: "Created successfully", id : createdUser._id });
 
     // Sign the JWT
     // jwt.sign(
