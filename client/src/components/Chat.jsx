@@ -90,7 +90,7 @@ export default function Chat() {
   const sendMessage = async (ev, file = null) => {
     if (ev) ev.preventDefault();
   
-    if (ws && ws.readyState === WebSocket.OPEN) {
+    if (ws) {
       const message = {
         recipient: selectedUserId,
         text: newMessageText,
