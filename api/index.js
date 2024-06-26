@@ -22,10 +22,12 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname + "/uploads")));
 app.use(cookieParser());
 
-  app.use(cors({
+app.use(
+  cors({
     credentials: true,
-    origin: process.env.CLIENT_URL
-  }))
+    origin: process.env.CLIENT_URL,
+  })
+);
 
 app.get("/", (req, res) => {
   res.json("test ok");
@@ -125,7 +127,6 @@ app.get("/people", async (req, res) => {
 //   }
 // });
 
-
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -137,7 +138,7 @@ app.post("/login", async (req, res) => {
         jwt.sign(
           { userId: foundUser._id, username },
           jwtSecret,
-          { expiresIn: '1h' }, // Add an expiration time for security
+          { expiresIn: "1h" }, // Add an expiration time for security
           (err, token) => {
             if (err) {
               console.error("JWT Error:", err); // Log the error for debugging
@@ -170,8 +171,6 @@ app.post("/logout", (req, res) => {
     .json("ok");
 });
 
-
-
 app.post("/register", async (req, res) => {
   const { username, password } = req.body;
 
@@ -184,8 +183,27 @@ app.post("/register", async (req, res) => {
       username: username,
       password: hashedPassword,
     });
-    res.status(200).json({ message: "User created succesfully!!", id: createdUser.insertedId})
 
+    // Sign the JWT
+    jwt.sign(
+      { userId: createdUser._id, username },
+      jwtSecret,
+      {},
+      (err, token) => {
+        if (err) {
+          return res.status(500).json({ error: "Error generating the token" });
+        }
+
+        // Set the cookie and respond
+        res
+          .cookie("token", token, { sameSite: "none", secure: true })
+          .status(201)
+          .json({
+            id: createdUser._id,
+            message: "User created successfully!",
+          });
+      }
+    );
   } catch (error) {
     res.status(500).json({ error: "An error occured during the registration" });
   }
