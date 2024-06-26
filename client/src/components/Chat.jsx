@@ -59,70 +59,31 @@ export default function Chat() {
     }
   }
 
-  // const sendMessage = (ev, file = null) => {
-  //   if (ev) ev.preventDefault();
-  //   if(ws && ws.readyState === WebSocket.OPEN) {
-  //     ws.send(
-  //       JSON.stringify({
-  //         recipient: selectedUserId,
-  //         text: newMessageText,
-  //         file,
-  //       }));
-  //   }
-  //   if (file) {
-  //     axios.get("/messages/" + selectedUserId).then(res => {
-  //       setMessages(res.data);
-  //     });
-  //   } else {
-  //     setNewMessageText("");
-  //     setMessages(prev => ([
-  //       ...prev,
-  //       {
-  //         text: newMessageText,
-  //         sender: id,
-  //         recipient: selectedUserId,
-  //         _id: Date.now(),
-  //       },
-  //     ]));
-  //   }
-  // };
-
-  const sendMessage = async (ev, file = null) => {
+  const sendMessage = (ev, file = null) => {
     if (ev) ev.preventDefault();
-  
-    if (ws) {
-      const message = {
+    ws.send(
+      JSON.stringify({
         recipient: selectedUserId,
         text: newMessageText,
         file,
-      };
-  
-      ws.send(JSON.stringify(message));
-  
-      // Update UI immediately for better UX
+      }));
+    if (file) {
+      axios.get("/messages/" + selectedUserId).then(res => {
+        setMessages(res.data);
+      });
+    } else {
       setNewMessageText("");
       setMessages(prev => ([
         ...prev,
         {
-          ...message,
+          text: newMessageText,
           sender: id,
+          recipient: selectedUserId,
           _id: Date.now(),
         },
       ]));
-  
-      if (file) {
-        try {
-          const res = await axios.get("/messages/" + selectedUserId);
-          setMessages(res.data);
-        } catch (error) {
-          console.error("Error fetching messages after sending a file:", error);
-        }
-      }
-    } else {
-      console.error("WebSocket is not open. Cannot send message.");
     }
   };
-  
 
   function logout() {
     axios.post("/logout").then(() => {
