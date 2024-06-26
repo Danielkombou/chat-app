@@ -112,7 +112,10 @@ app.post("/login", async (req, res) => {
             res
               .cookie("token", token, { sameSite: "none", secure: true })
               .json({
+                error: false,
+                message: "Login successfull",
                 id: foundUser._id,
+                jwtSecret
               });
           }
         );
@@ -166,8 +169,10 @@ app.post("/register", async (req, res) => {
           .cookie("token", token, { sameSite: "none", secure: true })
           .status(201)
           .json({
-            id: createdUser._id,
+            error: false,
             message: "User created successfully!",
+            id: createdUser._id,
+            jwtSecret
           });
       }
     );
