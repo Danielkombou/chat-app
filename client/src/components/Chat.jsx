@@ -4,8 +4,10 @@ import { UserContext } from "./UserContext";
 import uniqBy from "lodash/uniqBy";
 import Contact from "./Contact";
 import axios from "axios";
+import io from "socket.io-client";
 
 export default function Chat() {
+  const [socket, setSocket] = useState(null);
   const [ws, setWS] = useState(null);
   const [onlinePeople, setOnlinePeople] = useState({});
   const [offlinePeople, setOfflinePeople] = useState({});
@@ -13,33 +15,103 @@ export default function Chat() {
   const [newMessageText, setNewMessageText] = useState("");
   const [messages, setMessages] = useState([]);
   const { username, id, setId, setUserName } = useContext(UserContext);
+  const [isConnected, setIsConnected] = useState(false);
   const divUnderMessages = useRef();
 
   useEffect(() => {
-      connectToWs();
-      // Clean up on component unmount
-      return () => {
-          if (ws) ws.close();
-      };
+    connectToWs();
+    // Clean up on component unmount
+    return () => {
+      if (ws) ws.close();
+    };
   }, []);
-  
+
   const connectToWs = () => {
-      const ws = new WebSocket("wss://chat-api-alpha.vercel.app");
-      setWS(ws);
-  
-      ws.addEventListener("message", handleMessage);
-      ws.addEventListener("close", () => {
-          setTimeout(() => {
-              console.log("Disconnected. Trying to reconnect.");
-              connectToWs();
-          }, 1000);
-      });
-  
-      ws.addEventListener("open", () => {
-          console.log("Connected to WebSocket server.");
-      });
+    const ws = new WebSocket("https://chat-api-alpha.vercel.app");
+    setWS(ws);
+
+    ws.addEventListener("message", handleMessage);
+    ws.addEventListener("close", () => {
+      setTimeout(() => {
+        console.log("Disconnected. Trying to reconnect.");
+        connectToWs();
+      }, 1000);
+    });
+
+    ws.addEventListener("open", () => {
+      console.log("Connected to WebSocket server.");
+    });
   };
 
+  // useEffect(() => {
+  //   const connectToSocketIo = () => {
+  //     const token = document.cookie.split(';').find(cookie => cookie.trim().startsWith('token=')).split('=')[1];
+  //     const newSocket = io("http://localhost:4040", {
+  //       query: { token },
+  //       reconnectionAttempts: 5,
+  //       reconnectionDelay: 1000
+  //     });
+
+  //     newSocket.on('connect', () => {
+  //       console.log("Connected to Socket.IO server.");
+  //       setIsConnected(true);
+  //     });
+
+  //     newSocket.on('disconnect', () => {
+  //       console.log("Disconnected from Socket.IO server. Trying to reconnect...");
+  //       setIsConnected(false);
+  //     });
+
+  //     newSocket.on('message', handleMessage);
+
+  //     newSocket.on('online-users', (users) => {
+  //       setOnlineUsers(users);
+  //     });
+
+  //     setSocket(newSocket);
+  //   };
+
+  //   connectToSocketIo();
+
+  //   // Clean up on component unmount
+  //   return () => {
+  //     if (socket) socket.disconnect();
+  //   };
+  // }, []);
+
+  // const sendMessage = (ev, file = null) => {
+  //   if (ev) ev.preventDefault();
+  //   if (isConnected) {
+  //     const message = {
+  //       recipient: selectedUserId,
+  //       text: newMessageText,
+  //       file,
+  //     };
+
+  //     socket.emit('message', message);
+
+  //     // Update UI immediately for better UX
+  //     if (file) {
+  //       axios.get("/messages/" + selectedUserId).then((res) => {
+  //         setMessages(res.data);
+  //       });
+  //     } else {
+  //       setNewMessageText("");
+  //       setMessages((prev) => [
+  //         ...prev,
+  //         {
+  //           ...message,
+  //           sender: socket.id,
+  //           _id: Date.now(),
+  //         },
+  //       ]);
+  //     }
+  //   } else {
+  //     console.error('Socket is not connected.');
+  //   }
+  // };
+
+  // Notify online people
   const showOnlinePoeple = (peopleArray) => {
     const people = {};
     peopleArray.forEach(({ userId, username }) => {
@@ -50,39 +122,80 @@ export default function Chat() {
 
   function handleMessage(ev) {
     const messageData = JSON.parse(ev.data);
+    // console.log({ev,messageData})
     if ("online" in messageData) {
       showOnlinePoeple(messageData.online);
     } else if ("text" in messageData) {
-      if(messageData.sender === selectedUserId){
+      if (messageData.sender === selectedUserId) {
         setMessages((prev) => [...prev, { ...messageData }]);
       }
     }
   }
 
-  const sendMessage = (ev, file = null) => {
+  const sendMessage = async (ev, file = null) => {
     if (ev) ev.preventDefault();
+
+// Adjusting the actual time
+const tempMessage = {
+    _id: `temp-${Date.now()}`, // Temporary ID
+    text: newMessageText,
+    sender: id,
+    recipient: selectedUserId,
+    createdAt: "just now",
+    file,
+  };
+
     ws.send(
       JSON.stringify({
         recipient: selectedUserId,
         text: newMessageText,
         file,
-      }));
+      })
+    );
+
+    // Update state with the temporary message
+    setMessages((prev) => [...prev, tempMessage]);
+
+    // if (file) {
+    //   axios.get("/messages/" + selectedUserId).then((res) => {
+    //     setMessages(res.data);
+    //   });
+    // } else {
+    //   setNewMessageText("");
+    //   setMessages((prev) => [
+    //     ...prev,
+    //     {
+    //       text: newMessageText,
+    //       sender: id,
+    //       recipient: selectedUserId,
+    //       _id: Date.now(),
+    //     },
+    //   ]);
+    // }
+
     if (file) {
-      axios.get("/messages/" + selectedUserId).then(res => {
-        setMessages(res.data);
+    axios.get("/messages/" + selectedUserId).then((res) => {
+      setMessages(res.data);
+    });
+  } else {
+    setNewMessageText("");
+    try {
+      const response = await axios.post('/messages', {
+        recipient: selectedUserId,
+        text: newMessageText,
+        file,
       });
-    } else {
-      setNewMessageText("");
-      setMessages(prev => ([
-        ...prev,
-        {
-          text: newMessageText,
-          sender: id,
-          recipient: selectedUserId,
-          _id: Date.now(),
-        },
-      ]));
+      const newMessage = response.data;
+      
+      // Update the state with the actual message from the server
+      setMessages((prev) =>
+        prev.map((msg) => (msg._id === tempMessage._id ? newMessage : msg))
+      );
+    } catch (error) {
+      console.error("Failed to send message", error);
     }
+  }
+
   };
 
   function logout() {
@@ -134,13 +247,14 @@ export default function Chat() {
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleDateString()
+    // console.log(timestamp)
+    return date.toLocaleDateString();
   };
 
   const formatTime = (timestamp) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit'})
-  }
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
 
   const onlinePeopleExclOurUser = { ...onlinePeople };
   delete onlinePeopleExclOurUser[id];
@@ -149,7 +263,10 @@ export default function Chat() {
 
   return (
     <div className="flex h-screen">
-      <div className="bg-white w-1/3 flex flex-col overflow-hidden" style={{ height: '100vh' }}>
+      <div
+        className="bg-white w-1/3 flex flex-col overflow-hidden"
+        style={{ height: "100vh" }}
+      >
         <div className="flex-grow overflow-y-auto">
           <Logo />
           {Object.keys(onlinePeopleExclOurUser).map((userId) => (
@@ -208,20 +325,20 @@ export default function Chat() {
           )}
           {selectedUserId && (
             <div className="relative h-full">
-              <div className="overflow-y-scroll absolute top-0 left-0 right-0 bottom-2">
-                {messagesWithoutDupes.map(message => (
+              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-2">
+                {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
                     className={`${
-                      message.sender === id ? "text-right" : "text-left"
+                      message.sender._id === id ? "text-right" : "text-left"
                     }`}
                   >
                     <div className="w-20 flex justify-center text-xs text-gray-300 p-1 bg-pink rounded-sm hover:text-gray-700">
-                          <span className="date text-center">{formatDate(message.createdAt)} </span>
-                      </div>
+                      <span className="">{formatDate(message.createdAt)} </span>
+                    </div>
                     <div
-                      className={`text-left inline-block p-2 my-2 rounded-sm text-sm hover:p-3 transition-colors duration-500 cursor-pointer ${
-                        message.sender === id
+                      className={`text-left max-w-xs inline-block p-2 my-2 rounded-sm text-sm hover:p-3 transition-colors duration-500 cursor-pointer ${
+                        message.sender._id === id
                           ? "bg-blue-500 text-white"
                           : "bg-white text-gray-500"
                       }`}
@@ -250,23 +367,28 @@ export default function Chat() {
                                 clipRule="evenodd"
                               />
                             </svg>
-                            <img src={`https://chat-api-alpha.vercel.app/uploads/${message.file}`} className="w-30 h-30 bg-transparent" />
+                            <img
+                              src={`https://chat-api-alpha.vercel.app/uploads/${message.file}`}
+                              className="max-w-full h-auto"
+                            />
                           </a>
                         </div>
                       )}
-                      <div className="absolue bottom-0 right-0 text-xs text-green-500 p-1">
-                          <span className="time block">{formatTime(message.createdAt)} </span>
+                      <div className="absolue text-xs text-green-500 p-1">
+                        <span className="time block">
+                          {formatTime(message.createdAt)}
+                        </span>
                       </div>
                     </div>
                   </div>
                 ))}
-                <div ref={divUnderMessages}/>
+                <div ref={divUnderMessages} />
               </div>
             </div>
           )}
         </div>
-        {!!selectedUserId && (
-          <form className="flex gap-2" onSubmit={sendMessage}>
+        {selectedUserId && (
+          <form className="flex gap-2" onSubmit={(ev) =>  sendMessage(ev)}>
             <input
               value={newMessageText}
               onChange={(ev) => setNewMessageText(ev.target.value)}

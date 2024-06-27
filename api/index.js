@@ -9,13 +9,18 @@ const jwt = require("jsonwebtoken");
 const cors = require("cors");
 const bcrypt = require("bcryptjs");
 const ws = require("ws");
+const http = require("http")
 const fs = require("fs");
+const socketIo = require("socket.io")
 const path = require("path");
 
 dotenv.config();
 mongoose.connect(process.env.MONGO_URL);
 const jwtSecret = process.env.JWT_SECRET;
 const bcryptSalt = bcrypt.genSaltSync(10);
+const server = http.createServer(app);
+const io = socketIo(server)
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -30,7 +35,7 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-  res.json("test ok");
+  res.json("Test ok");
 });
 
 app.get("/profile", (req, res) => {
@@ -126,41 +131,7 @@ app.post("/login", async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: "An error occured during login" });
   }
-});
-
-// app.post("/login", async (req, res) => {
-//   const { username, password } = req.body;
-
-//   try {
-//     const foundUser = await User.findOne({ username });
-//     if (foundUser) {
-//       const passOk = bcrypt.compareSync(password, foundUser.password);
-//       if (passOk) {
-//         jwt.sign(
-//           { userId: foundUser._id, username },
-//           jwtSecret,
-//           { expiresIn: "1h" }, // Add an expiration time for security
-//           (err, token) => {
-//             if (err) {
-//               console.error("JWT Error:", err); // Log the error for debugging
-//               return res.status(500).json({ error: "Error generating token" });
-//             }
-//             res
-//               .cookie("token", token, { sameSite: "none", secure: true })
-//               .json({ id: foundUser._id });
-//           }
-//         );
-//       } else {
-//         res.status(401).json({ error: "Invalid password" });
-//       }
-//     } else {
-//       res.status(401).json({ error: "User not found" });
-//     }
-//   } catch (error) {
-//     console.error("Login Error:", error); // Log the error for debugging
-//     res.status(500).json({ error: "An error occurred during login" });
-//   }
-// });
+})
 
 app.post("/logout", (req, res) => {
   res
@@ -215,8 +186,91 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// io.on('connection', (socket) => {
+//   console.log('New client connected');
+
+//   // Read username and id from the cookie for this connection
+//   const token = socket.handshake.query.token;
+//   if (token) {
+//     jwt.verify(token, jwtSecret, (err, userData) => {
+//       if (err) {
+//         socket.disconnect();
+//         return;
+//       }
+//       const { userId, username } = userData;
+//       socket.userId = userId;
+//       socket.username = username;
+
+//       // Notify about online users
+//       notifyAboutOnlinePeople();
+//     });
+//   }
+
+//   function notifyAboutOnlinePeople() {
+//     const onlineUsers = Array.from(io.sockets.sockets.values())
+//       .map((socket) => ({
+//         userId: socket.userId,
+//         username: socket.username,
+//       }))
+//       .filter((user) => user.userId && user.username);
+
+//     io.emit('online-users', onlineUsers);
+//   }
+
+//   socket.on('message', async (messageData) => {
+//     const { recipient, text, file } = messageData;
+//     let filename = null;
+//     if (file) {
+//       const parts = file.name.split('.');
+//       const ext = parts[parts.length - 1];
+//       filename = `${Date.now()}.${ext}`;
+//       const filePath = path.join(__dirname, 'uploads', filename);
+//       const bufferData = Buffer.from(file.data.split(',')[1], 'base64');
+
+//       fs.writeFile(filePath, bufferData, (err) => {
+//         if (err) {
+//           console.error('Error saving file:', err);
+//           return;
+//         }
+//         console.log('file saved:', filePath);
+//       });
+//     }
+
+//     if (recipient && (text || file)) {
+//       const messageDoc = await Message.create({
+//         sender: socket.userId,
+//         recipient,
+//         text,
+//         file: file ? filename : null,
+//       });
+
+//       io.to(recipient).emit('message', {
+//         text,
+//         recipient,
+//         sender: socket.userId,
+//         file: file ? filename : null,
+//         _id: messageDoc._id,
+//       });
+//     }
+//   });
+
+//   socket.on('disconnect', () => {
+//     console.log('Client disconnected');
+//     notifyAboutOnlinePeople();
+//   });
+// });
+
+// server.listen(4040, () => {
+//   console.log('Server is running on port 4040');
+// });
+
+// Web Socket server
+
 // const port = process.env.PORT || 4000;
-const server = app.listen(4040);
+
+server.listen(4040, ()=> {
+  console.log('Server is running on port 4040');
+});
 
 const wss = new ws.WebSocketServer({ server });
 
