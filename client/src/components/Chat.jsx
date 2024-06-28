@@ -359,7 +359,9 @@ export default function Chat() {
                     }`}
                   >
                     <div className="w-full flex justify-center text-xs text-gray-300 p-1 rounded-sm hover:text-gray-700">
-                      <span>{formatDate(message.createdAt)} </span>
+                      <span>{message.createdAt === "Just now"
+                          ? "Just now"
+                          : formatDate(message.createdAt)} </span>
                     </div>
                     <div
                       className={`text-left max-w-xs inline-block p-2 my-2 rounded-sm text-sm transition-colors duration-500 cursor-pointer ${
