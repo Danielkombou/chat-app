@@ -141,10 +141,11 @@ const tempMessage = {
     text: newMessageText,
     sender: id,
     recipient: selectedUserId,
-    createdAt: "just now",
+    createdAt: "Just now",
     file,
   };
 
+  // Send message via Websocket
     ws.send(
       JSON.stringify({
         recipient: selectedUserId,
@@ -262,9 +263,10 @@ const tempMessage = {
   const messagesWithoutDupes = uniqBy(messages, "_id");
 
   return (
-    <div className="flex h-screen">
+    <div className="flex flex-col md:flex-row h-screen">
+      {/* Sidebar full width on small screens, 1/3 width on medium and larger screens */}
       <div
-        className="bg-white w-1/3 flex flex-col overflow-hidden"
+        className={`bg-white w-full md:w-1/3 flex flex-col overflow-hidden ${selectedUserId ? 'hidden' : 'flex' } md:flex`}
         style={{ height: "100vh" }}
       >
         <div className="flex-grow overflow-y-auto">
@@ -314,7 +316,8 @@ const tempMessage = {
           </button>
         </div>
       </div>
-      <div className="flex flex-col bg-blue-50 w-2/3 p-2">
+      {/* Chat section: full width on small screens, 2/3 width on medium and larger screens */}
+      <div className={`flex flex-col bg-blue-50 w-full md:w-2/3 p-2 ${selectedUserId ? 'block' : 'hidden' } md:flex `}>
         <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex flex-grow h-full items-center justify-center">
@@ -325,6 +328,11 @@ const tempMessage = {
           )}
           {selectedUserId && (
             <div className="relative h-full">
+              <button
+              className="absolute top-2 left-2 md:hidden bg-gray-200 p-1 rounded"
+              onClick={() => setSelectedUserId(false)}>
+                Back
+              </button>
               <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-2">
                 {messagesWithoutDupes.map((message) => (
                   <div
@@ -333,11 +341,11 @@ const tempMessage = {
                       message.sender._id === id ? "text-right" : "text-left"
                     }`}
                   >
-                    <div className="w-20 flex justify-center text-xs text-gray-300 p-1 bg-pink rounded-sm hover:text-gray-700">
+                    <div className="w-20 flex justify-center text-xs text-gray-300 p-1 rounded-sm hover:text-gray-700">
                       <span className="">{formatDate(message.createdAt)} </span>
                     </div>
                     <div
-                      className={`text-left max-w-xs inline-block p-2 my-2 rounded-sm text-sm hover:p-3 transition-colors duration-500 cursor-pointer ${
+                      className={`text-left max-w-xs inline-block p-2 my-2 rounded-sm text-sm transition-colors duration-500 cursor-pointer ${
                         message.sender._id === id
                           ? "bg-blue-500 text-white"
                           : "bg-white text-gray-500"
