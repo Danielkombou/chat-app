@@ -135,17 +135,17 @@ export default function Chat() {
   const sendMessage = async (ev, file = null) => {
     if (ev) ev.preventDefault();
 
-// Adjusting the actual time
-const tempMessage = {
-    _id: `temp-${Date.now()}`, // Temporary ID
-    text: newMessageText,
-    sender: id,
-    recipient: selectedUserId,
-    createdAt: "Just now",
-    file,
-  };
+    // Adjusting the actual time
+    const tempMessage = {
+      _id: `temp-${Date.now()}`, // Temporary ID
+      text: newMessageText,
+      sender: id,
+      recipient: selectedUserId,
+      createdAt: "Just now",
+      file,
+    };
 
-  // Send message via Websocket
+    // Send message via Websocket
     ws.send(
       JSON.stringify({
         recipient: selectedUserId,
@@ -175,28 +175,27 @@ const tempMessage = {
     // }
 
     if (file) {
-    axios.get("/messages/" + selectedUserId).then((res) => {
-      setMessages(res.data);
-    });
-  } else {
-    setNewMessageText("");
-    try {
-      const response = await axios.post('/messages', {
-        recipient: selectedUserId,
-        text: newMessageText,
-        file,
+      axios.get("/messages/" + selectedUserId).then((res) => {
+        setMessages(res.data);
       });
-      const newMessage = response.data;
-      
-      // Update the state with the actual message from the server
-      setMessages((prev) =>
-        prev.map((msg) => (msg._id === tempMessage._id ? newMessage : msg))
-      );
-    } catch (error) {
-      console.error("Failed to send message", error);
-    }
-  }
+    } else {
+      setNewMessageText("");
+      try {
+        const response = await axios.post("/messages", {
+          recipient: selectedUserId,
+          text: newMessageText,
+          file,
+        });
+        const newMessage = response.data;
 
+        // Update the state with the actual message from the server
+        setMessages((prev) =>
+          prev.map((msg) => (msg._id === tempMessage._id ? newMessage : msg))
+        );
+      } catch (error) {
+        console.error("Failed to send message", error);
+      }
+    }
   };
 
   function logout() {
@@ -248,7 +247,6 @@ const tempMessage = {
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
-    // console.log(timestamp)
     return date.toLocaleDateString();
   };
 
@@ -266,7 +264,9 @@ const tempMessage = {
     <div className="flex flex-col md:flex-row h-screen">
       {/* Sidebar full width on small screens, 1/3 width on medium and larger screens */}
       <div
-        className={`bg-white w-full md:w-1/3 flex flex-col overflow-hidden ${selectedUserId ? 'hidden' : 'flex' } md:flex`}
+        className={`bg-white w-full md:w-1/3 flex flex-col overflow-hidden ${
+          selectedUserId ? "hidden" : "flex"
+        } md:flex`}
         style={{ height: "100vh" }}
       >
         <div className="flex-grow overflow-y-auto">
@@ -317,7 +317,11 @@ const tempMessage = {
         </div>
       </div>
       {/* Chat section: full width on small screens, 2/3 width on medium and larger screens */}
-      <div className={`flex flex-col bg-blue-50 w-full md:w-2/3 p-2 ${selectedUserId ? 'block' : 'hidden' } md:flex `}>
+      <div
+        className={`flex flex-col bg-blue-50 w-full md:w-2/3 p-2 ${
+          selectedUserId ? "block" : "hidden"
+        } md:flex `}
+      >
         <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex flex-grow h-full items-center justify-center">
@@ -328,10 +332,23 @@ const tempMessage = {
           )}
           {selectedUserId && (
             <div className="relative h-full">
+              {/* Moving back to previous page */}
               <button
-              className="absolute top-2 left-2 md:hidden bg-gray-200 p-1 rounded"
-              onClick={() => setSelectedUserId(false)}>
-                Back
+                className="absolute top-2 left-2 md:hidden bg-gray-200 p-1 rounded"
+                onClick={() => setSelectedUserId(false)}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  class="size-6"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M11.03 3.97a.75.75 0 0 1 0 1.06l-6.22 6.22H21a.75.75 0 0 1 0 1.5H4.81l6.22 6.22a.75.75 0 1 1-1.06 1.06l-7.5-7.5a.75.75 0 0 1 0-1.06l7.5-7.5a.75.75 0 0 1 1.06 0Z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
               </button>
               <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-2">
                 {messagesWithoutDupes.map((message) => (
@@ -341,8 +358,8 @@ const tempMessage = {
                       message.sender._id === id ? "text-right" : "text-left"
                     }`}
                   >
-                    <div className="w-20 flex justify-center text-xs text-gray-300 p-1 rounded-sm hover:text-gray-700">
-                      <span className="">{formatDate(message.createdAt)} </span>
+                    <div className="w-full flex justify-center text-xs text-gray-300 p-1 rounded-sm hover:text-gray-700">
+                      <span>{formatDate(message.createdAt)} </span>
                     </div>
                     <div
                       className={`text-left max-w-xs inline-block p-2 my-2 rounded-sm text-sm transition-colors duration-500 cursor-pointer ${
@@ -353,7 +370,7 @@ const tempMessage = {
                     >
                       {message.text}
                       {message.file && (
-                        <div className="">
+                        <div>
                           <a
                             target="_blank"
                             className="flex items-center gap-1 border-b"
@@ -384,7 +401,8 @@ const tempMessage = {
                       )}
                       <div className="absolue text-xs text-green-500 p-1">
                         <span className="time block">
-                          {formatTime(message.createdAt)}
+                          {message.createdAt === "Just now" ? "Just now"
+                          : formatTime(message.createdAt)}
                         </span>
                       </div>
                     </div>
@@ -396,7 +414,7 @@ const tempMessage = {
           )}
         </div>
         {selectedUserId && (
-          <form className="flex gap-2" onSubmit={(ev) =>  sendMessage(ev)}>
+          <form className="flex gap-2" onSubmit={(ev) => sendMessage(ev)}>
             <input
               value={newMessageText}
               onChange={(ev) => setNewMessageText(ev.target.value)}
