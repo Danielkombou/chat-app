@@ -416,7 +416,7 @@ export default function Chat() {
           )}
         </div>
         {selectedUserId && (
-          <form className="flex gap-2" onSubmit={(ev) => sendMessage(ev)}>
+          <form className="flex gap-2 border-t" onSubmit={(ev) => sendMessage(ev)}>
             <input
               value={newMessageText}
               onChange={(ev) => setNewMessageText(ev.target.value)}
