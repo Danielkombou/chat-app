@@ -318,7 +318,7 @@ export default function Chat() {
       </div>
       {/* Chat section: full width on small screens, 2/3 width on medium and larger screens */}
       <div
-        className={`flex flex-col bg-blue-50 w-full md:w-2/3 p-2 ${
+        className={`flex flex-col bg-blue-50 h-screen w-full md:w-2/3 p-2 ${
           selectedUserId ? "block" : "hidden"
         } md:flex `}
       >
