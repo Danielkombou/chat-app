@@ -350,7 +350,7 @@ export default function Chat() {
                   />
                 </svg>
               </button>
-              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-16">
+              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-16 w-full">
                 {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
