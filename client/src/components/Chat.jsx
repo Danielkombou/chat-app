@@ -322,7 +322,7 @@ export default function Chat() {
           selectedUserId ? "block" : "hidden"
         } md:flex `}
       >
-        <div className="flex-grow">
+        <div className="flex-grow overflow-y-auto relative">
           {!selectedUserId && (
             <div className="flex flex-grow h-full items-center justify-center">
               <div className="text-gray-300">
@@ -350,7 +350,7 @@ export default function Chat() {
                   />
                 </svg>
               </button>
-              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-2">
+              <div className="overflow-y-auto absolute top-0 right-0 left-0 bottom-16">
                 {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
@@ -416,7 +416,7 @@ export default function Chat() {
           )}
         </div>
         {selectedUserId && (
-          <form className="flex gap-2 border-t" onSubmit={(ev) => sendMessage(ev)}>
+          <form className="flex gap-2 border-t absolute bottom-0" onSubmit={(ev) => sendMessage(ev)}>
             <input
               value={newMessageText}
               onChange={(ev) => setNewMessageText(ev.target.value)}
