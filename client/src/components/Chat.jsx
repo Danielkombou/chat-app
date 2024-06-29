@@ -318,7 +318,7 @@ export default function Chat() {
       </div>
       {/* Chat section: full width on small screens, 2/3 width on medium and larger screens */}
       <div
-        className={`flex flex-col bg-blue-50 w-full md:w-2/3 p-2 ${
+        className={`flex flex-col bg-blue-50 h-screen w-full md:w-2/3 p-2 ${
           selectedUserId ? "block" : "hidden"
         } md:flex `}
       >
@@ -351,7 +351,7 @@ export default function Chat() {
                 </svg>
                 Back
               </button>
-              <div className="overflow-y-scoll absolute top-0 right-0 left-0 bottom-16">
+              <div className="overflow-y-auto absolute top-0 right-0 left-0 bottom-16">
                 {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
