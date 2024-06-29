@@ -349,9 +349,8 @@ export default function Chat() {
                     clip-rule="evenodd"
                   />
                 </svg>
-                Back
               </button>
-              <div className="overflow-y-auto absolute top-0 right-0 left-0 bottom-16">
+              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-16">
                 {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
