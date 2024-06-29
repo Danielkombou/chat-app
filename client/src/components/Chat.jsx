@@ -334,7 +334,7 @@ export default function Chat() {
             <div className="relative h-full">
               {/* Moving back to previous page */}
               <button
-                className="absolute top-2 left-2 md:hidden bg-gray-200 p-1 rounded"
+                className="absolute top-2 left-2 md:hidden bg-gray-200 p-1 rounded z-10"
                 onClick={() => setSelectedUserId(false)}
               >
                 Back
