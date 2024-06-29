@@ -322,7 +322,7 @@ export default function Chat() {
           selectedUserId ? "block" : "hidden"
         } md:flex `}
       >
-        <div className="flex-grow overflow-y-scroll relative">
+        <div className="flex-grow overflow-y-auto relative">
           {!selectedUserId && (
             <div className="flex flex-grow h-full items-center justify-center">
               <div className="text-gray-300">
