@@ -322,7 +322,7 @@ export default function Chat() {
           selectedUserId ? "block" : "hidden"
         } md:flex `}
       >
-        <div className="flex-grow overflow-y-auto relative">
+        <div className="flex-grow">
           {!selectedUserId && (
             <div className="flex flex-grow h-full items-center justify-center">
               <div className="text-gray-300">
@@ -350,7 +350,7 @@ export default function Chat() {
                   />
                 </svg>
               </button>
-              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-16 w-full">
+              <div className="overflow-y-scroll absolute top-0 right-0 left-0 bottom-2 w-full">
                 {messagesWithoutDupes.map((message) => (
                   <div
                     key={message._id}
@@ -376,11 +376,7 @@ export default function Chat() {
                           <a
                             target="_blank"
                             className="flex items-center gap-1 border-b"
-                            href={
-                              axios.defaults.baseURL +
-                              "/uploads/" +
-                              message.file
-                            }
+                            href={`${axios.defaults.baseURL}/uploads/${message.file}`}
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
